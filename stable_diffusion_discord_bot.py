@@ -63,22 +63,30 @@ async def on_ready():
 
 #slash command for image generation from user prompt
 @bot.tree.command(name='generate')
-async def generate(interaction, prompt: str):
+async def generate(interaction: discord.Interaction, prompt: str, negative_prompt:str = '', guidance_scale:int = 9):
     await interaction.response.defer()
-    print(f'prompt: {prompt}')
-    negative_prompt = '' #will add functionality to utilise the negative prompt later
-    guidance_scale = '9' #default value = 9, will add functionality for user input later
-    response = await get_images(prompt, negative_prompt, guidance_scale)
+
+    message = f'Prompt: {prompt}'
+    if len(negative_prompt) > 0:
+        message += f'\nNegative prompt: {negative_prompt}'
+    message += f'\nGuidance scale: {guidance_scale}'
+    print(message)
+
+    if not 0 <= guidance_scale <= 50:
+        error_message = message + f'\nError: Guidance scale must be withinin range 0 - 50'
+        await interaction.followup.send(error_message)
+        return
     
-    if isinstance(response, list):
+    response = await get_images(prompt, negative_prompt, str(guidance_scale)) 
+    
+    if isinstance(response, list) and len(response) > 0:
         files: list[discord.File] = []
         for image in response:
             data = io.BytesIO(image)
             files.append(discord.File(data, 'sd.jpg'))
-            message = f'Prompt: {prompt}'
         await interaction.followup.send(message, files=files)
     else:
-        error_message = f'Prompt: {prompt}\nStable Diffusion error: {response['error']}'
+        error_message = message + f'\nStable Diffusion error: {response['error']}'
         await interaction.followup.send(error_message)
         print(response['error'])
 
