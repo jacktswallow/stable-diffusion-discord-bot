@@ -21,11 +21,11 @@ async def await_response(websocket):
     response = await websocket.recv()
     print(f'response: {response}')
 
+#decodes base64 images and returns them as a list
 def decode_images(output):
     images = []
     for image in output['data'][0]:
         images.append(base64.b64decode(image[23:-1]))
-
     return images
 
 #create websocket connection, send prompt, recieve generated images
@@ -35,20 +35,24 @@ async def get_images(prompt, negative_prompt, guidance_scale):
     session_message = f'{{"session_hash":"{session_hash}","fn_index":3}}'
     prompt_message = f'{{"fn_index":3,"data":["{prompt}","{negative_prompt}",{guidance_scale}], "session_hash": "{session_hash}"}}'
 
-    async with websockets.connect(uri) as websocket:
+    async with websockets.connect(uri, max_size = 3000000) as websocket:
         print(f'connected to websocket at {uri}...')
-        await await_response(websocket)
-        await websocket.send(session_message)
-        print(f'request: {session_message}')
+        try:
+            await await_response(websocket)
+            await websocket.send(session_message)
+            print(f'request: {session_message}')
 
-        await await_response(websocket)
-        await await_response(websocket)
-        await websocket.send(prompt_message)
-        print(f'request: {prompt_message}')
+            await await_response(websocket)
+            await await_response(websocket)
+            await websocket.send(prompt_message)
+            print(f'request: {prompt_message}')
 
-        await await_response(websocket)
-
-        output = json.loads(await websocket.recv())['output']
+            await await_response(websocket)
+            output = json.loads(await websocket.recv())['output']
+        except:
+            output = {'error': 'Websocket connection error, please try again'}
+            return output
+        
         try:
             return decode_images(output)
         except:
@@ -86,9 +90,14 @@ async def generate(interaction: discord.Interaction, prompt: str, negative_promp
             files.append(discord.File(data, 'sd.jpg'))
         await interaction.followup.send(message, files=files)
     else:
-        error_message = message + f'\nStable Diffusion error: {response['error']}'
-        await interaction.followup.send(error_message)
-        print(response['error'])
+        try:
+            error_message = message + f'\nError: {response['error']}'
+            await interaction.followup.send(error_message)
+            print(response['error'])
+        except:
+            error_message = message + '\nError: Unknown error'
+            await interaction.followup.send(error_message)
+            print('unknown error')
 
 #regular command (uses defined prefix)
 #syncs all defined slash commands
