@@ -16,11 +16,6 @@ TEST_CHANNEL_ID = int(os.getenv("TEST_CHANNEL_ID"))
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents, case_insensitive=False)
 
-#get websocket response
-async def await_response(websocket):
-    response = await websocket.recv()
-    print(f'response: {response}')
-
 #decodes base64 images and returns them as a list
 def decode_images(output):
     images = []
@@ -36,18 +31,15 @@ async def get_images(prompt, negative_prompt, guidance_scale):
     prompt_message = f'{{"fn_index":3,"data":["{prompt}","{negative_prompt}",{guidance_scale}], "session_hash": "{session_hash}"}}'
 
     async with websockets.connect(uri, max_size = 3000000) as websocket:
-        print(f'connected to websocket at {uri}...')
         try:
-            await await_response(websocket)
+            await websocket.recv()
             await websocket.send(session_message)
-            print(f'request: {session_message}')
 
-            await await_response(websocket)
-            await await_response(websocket)
+            await websocket.recv()
+            await websocket.recv()
             await websocket.send(prompt_message)
-            print(f'request: {prompt_message}')
 
-            await await_response(websocket)
+            await websocket.recv()
             output = json.loads(await websocket.recv())['output']
         except:
             output = {'error': 'Websocket connection error, please try again'}
@@ -61,7 +53,6 @@ async def get_images(prompt, negative_prompt, guidance_scale):
 #message test channel on launch
 @bot.event
 async def on_ready():
-    print('running...')
     channel = bot.get_channel(TEST_CHANNEL_ID)
     await channel.send('running...')
 
@@ -74,7 +65,6 @@ async def generate(interaction: discord.Interaction, prompt: str, negative_promp
     if len(negative_prompt) > 0:
         message += f'\nNegative prompt: {negative_prompt}'
     message += f'\nGuidance scale: {guidance_scale}'
-    print(message)
 
     if not 0 <= guidance_scale <= 50:
         error_message = message + f'\nError: Guidance scale must be withinin range 0 - 50'
@@ -93,11 +83,9 @@ async def generate(interaction: discord.Interaction, prompt: str, negative_promp
         try:
             error_message = message + f'\nError: {response['error']}'
             await interaction.followup.send(error_message)
-            print(response['error'])
         except:
             error_message = message + '\nError: Unknown error'
             await interaction.followup.send(error_message)
-            print('unknown error')
 
 #regular command (uses defined prefix)
 #syncs all defined slash commands
@@ -106,7 +94,6 @@ async def sync(ctx):
     if ctx.author.id == OWNER_USERID:
         await bot.tree.sync()
         await ctx.send('command tree sync complete')
-        print('command tree sync complete')
     else:
         await ctx.send('Error: you must be the owner to use this command')
 
