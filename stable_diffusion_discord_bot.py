@@ -25,6 +25,7 @@ def decode_images(output):
 
 #create websocket connection, send prompt, recieve generated images
 async def get_images(prompt, negative_prompt, guidance_scale):
+    prompt = prompt.replace('"', '\\"')
     uri = 'wss://stabilityai-stable-diffusion.hf.space/queue/join'
     session_hash = str(uuid.uuid4())
     session_message = f'{{"session_hash":"{session_hash}","fn_index":3}}'
