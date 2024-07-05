@@ -25,8 +25,8 @@ def decode_images(output):
 
 #constructs message and truncates prompt strings if they are longer than the Discord bot maximum message length
 def construct_message(prompt, negative_prompt, guidance_scale, error_message):
-    MAX_CHARS = 1975
-    neg_heading = '\nNegative prompt: '
+    MAX_CHARS = 1967
+    neg_heading = '\n**Negative prompt:** '
     prompt_chars = len(prompt)
     neg_prompt_chars = len(negative_prompt)
     curr_chars = prompt_chars + neg_prompt_chars + len(error_message) + len(str(guidance_scale))
@@ -56,11 +56,12 @@ def construct_message(prompt, negative_prompt, guidance_scale, error_message):
             negative_prompt = negative_prompt[:-truncate_by] + overflow
 
     #construct message string
-    message = f'Prompt: {prompt}'
+    message = f'**Prompt:** {prompt}'
     if neg_prompt_chars > 0:
         message += neg_heading + negative_prompt
-    message += f'\nGuidance scale: {guidance_scale}'
+    message += f'\n**Guidance scale:** {guidance_scale}'
     message += error_message
+    print(len(message))
     return message
 
 #create websocket connection, send prompt, recieve generated images
@@ -104,7 +105,7 @@ async def generate(interaction: discord.Interaction, prompt: str, negative_promp
     await interaction.response.defer()
 
     if not 0 <= guidance_scale <= MAX_GUIDANCE_SCALE:
-        error_message = f'\nError: Guidance scale must be withinin range 0 - {MAX_GUIDANCE_SCALE}'
+        error_message = f'\n**Error:** Guidance scale must be withinin range 0 - {MAX_GUIDANCE_SCALE}'
         message = construct_message(prompt, negative_prompt, guidance_scale, error_message)
         await interaction.followup.send(message)
         return
@@ -120,11 +121,11 @@ async def generate(interaction: discord.Interaction, prompt: str, negative_promp
         await interaction.followup.send(message, files=files)
     else:
         try:
-            error_message = f'\nError: {response['error']}'
+            error_message = f'\n**Error:** {response['error']}'
             message = construct_message(prompt, negative_prompt, guidance_scale, error_message)
             await interaction.followup.send(message)
         except:
-            error_message = '\nError: Unknown error'
+            error_message = '\n**Error:** Unknown error'
             message = construct_message(prompt, negative_prompt, guidance_scale, error_message)
             await interaction.followup.send(message)
 
@@ -136,6 +137,6 @@ async def sync(ctx):
         await bot.tree.sync()
         await ctx.send('command tree sync complete')
     else:
-        await ctx.send('Error: you must be the owner to use this command')
+        await ctx.send('**Error:** you must be the owner to use this command')
 
 bot.run(BOT_TOKEN)
