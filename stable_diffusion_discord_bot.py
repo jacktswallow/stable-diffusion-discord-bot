@@ -61,7 +61,6 @@ def construct_message(prompt, negative_prompt, guidance_scale, error_message):
         message += neg_heading + negative_prompt
     message += f'\n**Guidance scale:** {guidance_scale}'
     message += error_message
-    print(len(message))
     return message
 
 #create websocket connection, send prompt, recieve generated images
@@ -125,7 +124,7 @@ async def generate(interaction: discord.Interaction, prompt: str, negative_promp
             message = construct_message(prompt, negative_prompt, guidance_scale, error_message)
             await interaction.followup.send(message)
         except:
-            error_message = '\n**Error:** Unknown error'
+            error_message = '\n**Error:** Unknown error, please try again'
             message = construct_message(prompt, negative_prompt, guidance_scale, error_message)
             await interaction.followup.send(message)
 
