@@ -79,12 +79,22 @@ A Discord bot that intergrates Stable Diffusion 2.1 image generation from text p
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-- Running the bot
-    1. Open a new terminal window in the root directory of the project
-    2. Run the following command 
-    ```sh
-    python stable_diffusion_discord_bot.py
-    ```
+### Running the bot
+1. Open a new terminal window in the root directory of the project
+2. Run the following command 
+```sh
+python stable_diffusion_discord_bot.py
+```
+### Syncronising slash commands 
+1. Open discord and navigate to the server the bot was invited to
+2. In any text channel type '!sync' (without the quotations) and send the message
+3. The bot should respond with 'command tree sync complete'
+4. Press ctrl + R (or cmd + R on mac) to refresh discord and ensure the slash commands have been synchronised
+5. These steps only need to be carried out once for each server the bot is in
+### Slash command usage
+The only command the bot uses is '/generate'. The generate slash command requires one compulsary user field which is 'prompt'. 
+The other two optional fields are 'negative_prompt' and 'guidance_scale'. Guidance scale must be between 0 and 50.
+To use the command, simply type '/generate' (without quotations), and fill in the fields as desired before sending the message.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
