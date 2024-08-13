@@ -1,6 +1,6 @@
 <a id="readme-top"></a>
 # Stable Diffusion Discord Intergration Bot
-A Discord bot that intergrates Stable Diffusion 2.1 image generation from text prompts into Discord.
+A Discord bot that integrates Stable Diffusion 2.1 image generation from text prompts into Discord.
 
 <!-- TABLE OF CONTENTS -->
 <details>
