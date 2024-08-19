@@ -54,7 +54,7 @@ A Discord bot that integrates Stable Diffusion 2.1 image generation from text pr
     2. Ensure you are logged in to your Discord account
     3. Click 'New Application'
     4. Name the bot and click 'Create'
-    5. Go to the 'Bot' tab and click 'Add Bot'
+    5. Go to the 'Bot' tab and click 'Add Bot' or 'Reset Token'
     6. Copy the token. Treat this like a password, do not share it with anyone.
     7. Open the '.env.example' file in the root directory of the project
     8. Paste the token into the 'BOT_TOKEN' field and save the file
