@@ -120,7 +120,7 @@ async def generate(interaction: discord.Interaction, prompt: str, negative_promp
         await interaction.followup.send(message, files=files)
     else:
         try:
-            error_message = f'\n**Error:** {response['error']}'
+            error_message = f'\n**Error:** {response["error"]}'
             message = construct_message(prompt, negative_prompt, guidance_scale, error_message)
             await interaction.followup.send(message)
         except:
