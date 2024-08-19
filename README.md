@@ -77,7 +77,7 @@ A Discord bot that integrates Stable Diffusion 2.1 image generation from text pr
     6. Choose a server to invite the bot to and click 'Authorize'
 7. Get your personal user ID
     1. Open Discord and navigate to any server
-    2. Right click on the your profile in the panel on the right
+    2. Right click on the your profile in the panel on the right (if the panel isn't visible, click the 'Show Member List' icon)
     3. Click 'Copy User ID'
     4. Open the '.env.example' file in the root directory of the project
     5. Paste the ID into the OWNER_USER_ID field and save the file 
