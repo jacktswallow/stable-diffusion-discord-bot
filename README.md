@@ -33,9 +33,9 @@ A Discord bot that integrates Stable Diffusion 2.1 image generation from text pr
     ```sh
     pip install python-dotenv
     ```
-  * [websockets](https://pypi.org/project/websockets/)
+  * [requests](https://pypi.org/project/requests/)
     ```sh
-    pip install websockets
+    pip install requests
     ```
 
 ### Installation
