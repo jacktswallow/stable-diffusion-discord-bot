@@ -3,9 +3,8 @@ import discord
 import os
 from dotenv import load_dotenv
 import io
-import websockets
+import requests
 import uuid
-import base64
 import json
 
 load_dotenv()
@@ -15,13 +14,6 @@ TEST_CHANNEL_ID = int(os.getenv("TEST_CHANNEL_ID"))
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents, case_insensitive=False)
-
-#decodes base64 images and returns them as a list
-def decode_images(output):
-    images = []
-    for image in output['data'][0]:
-        images.append(base64.b64decode(image[23:-1]))
-    return images
 
 #constructs message and truncates prompt strings if they are longer than the Discord bot maximum message length
 def construct_message(prompt, negative_prompt, guidance_scale, error_message):
@@ -63,33 +55,29 @@ def construct_message(prompt, negative_prompt, guidance_scale, error_message):
     message += error_message
     return message
 
-#create websocket connection, send prompt, recieve generated images
+#make http requests to send prompt and recieve generated images
 async def get_images(prompt, negative_prompt, guidance_scale):
-    prompt = prompt.replace('"', '\\"')
-    uri = 'wss://stabilityai-stable-diffusion.hf.space/queue/join'
     session_hash = str(uuid.uuid4())
-    session_message = f'{{"session_hash":"{session_hash}","fn_index":3}}'
-    prompt_message = f'{{"fn_index":3,"data":["{prompt}","{negative_prompt}",{guidance_scale}], "session_hash": "{session_hash}"}}'
+    payload = f'{{"data":["{prompt}","{negative_prompt}",{guidance_scale}],"event_data":null,"fn_index":3,"trigger_id":9,"session_hash":"{session_hash}"}}'
+    post_url = 'https://stabilityai-stable-diffusion.hf.space/queue/join?'
+    get_url = f'https://stabilityai-stable-diffusion.hf.space/queue/data?session_hash={session_hash}'
 
-    async with websockets.connect(uri, max_size = 3000000) as websocket:
-        try:
-            await websocket.recv()
-            await websocket.send(session_message)
-
-            await websocket.recv()
-            await websocket.recv()
-            await websocket.send(prompt_message)
-
-            await websocket.recv()
-            output = json.loads(await websocket.recv())['output']
-        except:
-            output = {'error': 'Websocket connection error, please try again'}
-            return output
-        
-        try:
-            return decode_images(output)
-        except:
-            return output
+    try:
+        requests.post(post_url, data=payload)
+        response = requests.get(get_url).text.splitlines()[4]
+        output = json.loads(response[6:])['output']
+    except:
+        output = {'error': 'Connection error, please try again'}
+        return output
+    
+    try:
+        images = []
+        for image in output['data'][0]:
+            url = image['image']['url']
+            response = requests.get(url)
+            images.append(response.content)
+    except:
+        return output
 
 #message test channel on launch
 @bot.event
