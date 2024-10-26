@@ -76,6 +76,7 @@ async def get_images(prompt, negative_prompt, guidance_scale):
             url = image['image']['url']
             response = requests.get(url)
             images.append(response.content)
+        return images
     except:
         return output
 
