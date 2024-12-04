@@ -3,7 +3,7 @@ import discord
 import os
 from dotenv import load_dotenv
 import io
-import requests
+import httpx
 import uuid
 import json
 
@@ -62,23 +62,24 @@ async def get_images(prompt, negative_prompt, guidance_scale):
     post_url = 'https://stabilityai-stable-diffusion.hf.space/queue/join?'
     get_url = f'https://stabilityai-stable-diffusion.hf.space/queue/data?session_hash={session_hash}'
 
-    try:
-        requests.post(post_url, data=payload)
-        response = requests.get(get_url).text.splitlines()[4]
-        output = json.loads(response[6:])['output']
-    except:
-        output = {'error': 'Connection error, please try again'}
-        return output
+    async with httpx.AsyncClient() as client:
+        try:
+            await client.post(post_url, data=payload)
+            response = await client.get(get_url, timeout=None)
+            output = json.loads(response.text.splitlines()[4][6:])['output']
+        except:
+            output = {'error': 'Connection error, please try again'}
+            return output
     
-    try:
-        images = []
-        for image in output['data'][0]:
-            url = image['image']['url']
-            response = requests.get(url)
-            images.append(response.content)
-        return images
-    except:
-        return output
+        try:
+            images = []
+            for image in output['data'][0]:
+                url = image['image']['url']
+                response = await client.get(url)
+                images.append(response.content)
+            return images
+        except:
+            return output
 
 #message test channel on launch
 @bot.event
