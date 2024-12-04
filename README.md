@@ -33,9 +33,9 @@ A Discord bot that integrates Stable Diffusion 2.1 image generation from text pr
     ```sh
     pip install python-dotenv
     ```
-  * [requests](https://pypi.org/project/requests/)
+  * [httpx](https://www.python-httpx.org/)
     ```sh
-    pip install requests
+    pip install httpx
     ```
 
 ### Installation
