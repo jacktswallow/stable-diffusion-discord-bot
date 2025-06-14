@@ -58,18 +58,23 @@ def construct_message(prompt, negative_prompt, guidance_scale, error_message):
 #make http requests to send prompt and recieve generated images
 async def get_images(prompt, negative_prompt, guidance_scale):
     session_hash = str(uuid.uuid4())
-    payload = f'{{"data":["{prompt}","{negative_prompt}",{guidance_scale}],"event_data":null,"fn_index":3,"trigger_id":9,"session_hash":"{session_hash}"}}'
+    payload = {
+        "data": [prompt, negative_prompt, guidance_scale],
+        "event_data": None,
+        "fn_index": 3,
+        "trigger_id": 9,
+        "session_hash": session_hash
+    }
     post_url = 'https://stabilityai-stable-diffusion.hf.space/queue/join?'
     get_url = f'https://stabilityai-stable-diffusion.hf.space/queue/data?session_hash={session_hash}'
 
     async with httpx.AsyncClient() as client:
         try:
-            await client.post(post_url, data=payload)
+            await client.post(post_url, data=json.dumps(payload))
             response = await client.get(get_url, timeout=None)
             output = json.loads(response.text.splitlines()[4][6:])['output']
-        except:
-            output = {'error': 'Connection error, please try again'}
-            return output
+        except Exception as e:
+            return {'error': f'Connection error: {e}'}
     
         try:
             images = []
@@ -78,8 +83,10 @@ async def get_images(prompt, negative_prompt, guidance_scale):
                 response = await client.get(url)
                 images.append(response.content)
             return images
-        except:
-            return output
+        except httpx.RequestError as e:
+            return {'error': f'HTTP error: {e}'}
+        except Exception as e:
+            return {'error': f'Image retrieval error: {e}'}
 
 #message test channel on launch
 @bot.event
@@ -110,11 +117,11 @@ async def generate(interaction: discord.Interaction, prompt: str, negative_promp
         await interaction.followup.send(message, files=files)
     else:
         try:
-            error_message = f'\n**Error:** {response["error"]}'
+            error_message = f"\n**Error:** {response['error']}"
             message = construct_message(prompt, negative_prompt, guidance_scale, error_message)
             await interaction.followup.send(message)
-        except:
-            error_message = '\n**Error:** Unknown error, please try again'
+        except Exception as e:
+            error_message = '\n**Error:** {e}, please try again'
             message = construct_message(prompt, negative_prompt, guidance_scale, error_message)
             await interaction.followup.send(message)
 
